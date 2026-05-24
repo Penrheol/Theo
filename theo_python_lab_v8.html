@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js" crossorigin></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theo's Python Lab</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0f0e17;
+    --surface: #1a1930;
+    --surface2: #232240;
+    --accent: #7c6ff7;
+    --accent2: #f7c948;
+    --accent3: #4ecdc4;
+    --accent4: #ff6b9d;
+    --text: #fffffe;
+    --muted: #a7a9be;
+    --code-bg: #0d0c1a;
+    --green: #69db7c;
+    --border: rgba(124,111,247,0.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 40%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 25%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(2px 2px at 45% 55%, rgba(124,111,247,0.4) 0%, transparent 100%),
+      radial-gradient(2px 2px at 75% 35%, rgba(78,205,196,0.3) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* Header */
+  header { text-align: center; padding: 2.5rem 0 2rem; }
+  .header-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+  h1 span { color: var(--accent2); }
+  .subtitle { color: var(--muted); font-size: 1.05rem; }
+
+  /* Tab bar */
+  .tab-bar {
+    display: flex;
+    gap: 6px;
+    margin: 2rem 0 1.5rem;
+    flex-wrap: wrap;
+    background: var(--surface);
+    padding: 8px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+  .tab {
+    flex: 1;
+    min-width: 100px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { background: var(--accent); color: white; }
+  .tab .tab-icon { display: block; font-size: 18px; margin-bottom: 2px; }
+
+  /* Sections */
+  .section { display: none; animation: fadeIn 0.3s ease; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .card-accent-purple { border-left: 4px solid var(--accent); }
+  .card-accent-yellow { border-left: 4px solid var(--accent2); }
+  .card-accent-teal { border-left: 4px solid var(--accent3); }
+  .card-accent-pink { border-left: 4px solid var(--accent4); }
+
+  .concept-pill {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .pill-purple { background: rgba(124,111,247,0.2); color: var(--accent); }
+  .pill-yellow { background: rgba(247,201,72,0.2); color: var(--accent2); }
+  .pill-teal { background: rgba(78,205,196,0.2); color: var(--accent3); }
+  .pill-pink { background: rgba(255,107,157,0.2); color: var(--accent4); }
+
+  .explainer { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 1.1rem; }
+  .explainer strong { color: var(--text); }
+  .explainer code { font-family: 'Space Mono', monospace; font-size: 12px; background: var(--code-bg); padding: 2px 6px; border-radius: 4px; color: var(--accent2); }
+
+  /* Code blocks */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid rgba(124,111,247,0.15);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .kw { color: #c792ea; }
+  .str { color: #c3e88d; }
+  .num { color: var(--accent2); }
+  .comment { color: #546e7a; font-style: italic; }
+  .fn { color: #82aaff; }
+  .var { color: #f07178; }
+
+  /* Output */
+  .output-label { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .output-box {
+    background: rgba(78,205,196,0.07);
+    border: 1px solid rgba(78,205,196,0.25);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: var(--green);
+    white-space: pre;
+  }
+
+  /* Sliders */
+  .slider-section { margin-bottom: 1.25rem; }
+  .slider-row { display: flex; align-items: center; gap: 14px; }
+  .slider-row label { font-size: 13px; color: var(--muted); font-weight: 700; min-width: 90px; }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 8px rgba(124,111,247,0.5);
+  }
+  .slider-val { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; color: var(--accent2); min-width: 36px; }
+
+  /* Stat cards */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 1rem; }
+  .stat-card {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .stat-formula { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .stat-val { font-size: 2rem; font-weight: 800; color: var(--accent); }
+  .stat-unit { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* Times table grid */
+  .tt-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 1rem;
+  }
+  .tt-cell {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    text-align: center;
+    color: var(--text);
+    transition: background 0.2s;
+  }
+  .tt-cell:hover { background: rgba(124,111,247,0.15); }
+  .tt-cell .result { color: var(--accent2); font-weight: 700; }
+
+  /* Prime display */
+  .prime-result {
+    font-size: 1.4rem;
+    font-weight: 800;
+    padding: 1rem;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 1rem;
+    transition: all 0.3s;
+  }
+  .prime-yes { background: rgba(105,219,124,0.15); color: var(--green); border: 1px solid rgba(105,219,124,0.3); }
+  .prime-no { background: rgba(255,107,157,0.12); color: var(--accent4); border: 1px solid rgba(255,107,157,0.25); }
+
+  /* Notebook */
+  .notebook {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+  }
+  .nb-toolbar {
+    background: var(--surface2);
+    padding: 8px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nb-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .nb-cell { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(124,111,247,0.1); }
+  .nb-cell:last-child { border-bottom: none; }
+  .nb-in { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--accent); margin-bottom: 6px; }
+  .nb-out { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--accent3); margin-top: 8px; }
+
+  /* Setup steps */
+  .step-list { display: flex; flex-direction: column; gap: 10px; margin-top: 0.75rem; }
+  .step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--code-bg);
+    border-radius: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+  }
+  .step-num {
+    background: var(--accent);
+    color: white;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-body strong { color: var(--text); font-size: 14px; display: block; margin-bottom: 3px; }
+  .step-body span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .step-body a { color: var(--accent3); text-decoration: none; }
+  .step-body a:hover { text-decoration: underline; }
+
+  /* Challenges */
+  .challenge-header { display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem; }
+  .challenge-num {
+    background: var(--accent2);
+    color: var(--bg);
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  textarea {
+    width: 100%;
+    min-height: 90px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12.5px;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--code-bg);
+    color: var(--text);
+    resize: vertical;
+    line-height: 1.7;
+    margin-top: 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--accent); }
+  .btn-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .run-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .run-btn:hover { background: #9d91ff; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(124,111,247,0.4); }
+  .run-btn:active { transform: translateY(0); }
+  .hint-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .hint-btn:hover { color: var(--text); border-color: var(--accent2); }
+  .hint-box {
+    display: none;
+    background: rgba(247,201,72,0.08);
+    border: 1px solid rgba(247,201,72,0.3);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    font-size: 13px;
+    color: var(--accent2);
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+  .hint-box code { font-family: 'Space Mono', monospace; font-size: 11.5px; }
+
+  .py-editor-wrap { margin-top: 1rem; }
+  .py-editor {
+    width: 100%;
+    min-height: 110px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    padding: 0.85rem 1rem;
+    border-radius: 10px 10px 0 0;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    background: var(--code-bg);
+    color: var(--text);
+    resize: vertical;
+    line-height: 1.7;
+    outline: none;
+    transition: border-color 0.2s;
+    tab-size: 4;
+  }
+  .py-editor:focus { border-color: var(--accent); }
+  .py-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    padding: 6px 10px;
+  }
+  .run-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 6px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .run-btn:hover { background: #9d91ff; transform: translateY(-1px); }
+  .run-btn:active { transform: translateY(0); }
+  .run-btn:disabled { background: var(--muted); cursor: wait; transform: none; }
+  .reset-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover { color: var(--text); border-color: var(--accent2); }
+  .py-status { font-size: 12px; color: var(--muted); margin-left: auto; font-family: 'Space Mono', monospace; }
+  .py-output {
+    margin-top: 8px;
+    background: rgba(78,205,196,0.07);
+    border: 1px solid rgba(78,205,196,0.25);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: var(--green);
+    white-space: pre-wrap;
+    display: none;
+  }
+  .py-output.has-error { color: var(--accent4); background: rgba(255,107,157,0.08); border-color: rgba(255,107,157,0.25); }
+  .py-output.visible { display: block; }
+  .pyodide-loading {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--surface2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+  .pyodide-loading p { color: var(--muted); font-size: 13px; margin-top: 0.5rem; }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .c-out { margin-top: 10px; }
+  .error-box {
+    background: rgba(255,107,157,0.1);
+    border: 1px solid rgba(255,107,157,0.3);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent4);
+  }
+
+  /* Footer */
+  footer { text-align: center; margin-top: 3rem; color: var(--muted); font-size: 13px; }
+  footer span { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .stat-grid { grid-template-columns: 1fr; }
+    .tt-grid { grid-template-columns: repeat(3, 1fr); }
+    .tab .tab-label { display: none; }
+    .tab .tab-icon { margin: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="header-badge">🐍 Python Lab &nbsp;·&nbsp; v8</div>
+    <h1>Theo's <span>Coding</span> Lab</h1>
+    <p class="subtitle">Learn Python with maths — interactive, right in your browser</p>
+  </header>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="show('vars', this)">
+      <span class="tab-icon">📦</span>
+      <span class="tab-label">Variables</span>
+    </button>
+    <button class="tab" onclick="show('loops', this)">
+      <span class="tab-icon">🔁</span>
+      <span class="tab-label">Loops</span>
+    </button>
+    <button class="tab" onclick="show('functions', this)">
+      <span class="tab-icon">⚡</span>
+      <span class="tab-label">Functions</span>
+    </button>
+    <button class="tab" onclick="show('notebook', this)">
+      <span class="tab-icon">📓</span>
+      <span class="tab-label">Jupyter</span>
+    </button>
+    <button class="tab" onclick="show('challenge', this)">
+      <span class="tab-icon">🏆</span>
+      <span class="tab-label">Challenges</span>
+    </button>
+  </div>
+
+  <!-- VARIABLES -->
+  <div id="vars" class="section active">
+    <div class="card card-accent-purple">
+      <span class="concept-pill pill-purple">Variables</span>
+      <p class="explainer">A <strong>variable</strong> is like a labelled box — you put a value inside and give it a name. Python works out whether it's a number, text, or something else automatically.</p>
+      <div class="code-block"><span class="comment"># Storing numbers and text</span>
+<span class="var">age</span>  = <span class="num">11</span>
+<span class="var">name</span> = <span class="str">"Theo"</span>
+<span class="var">pi</span>   = <span class="num">3.14159</span>
+
+<span class="fn">print</span>(<span class="str">f"Hello {name}, you are {age} years old"</span>)
+<span class="fn">print</span>(<span class="str">f"Pi is roughly {pi}"</span>)
+
+<span class="comment"># Maths with variables</span>
+<span class="var">radius</span> = <span class="num">5</span>
+<span class="var">area</span>   = pi * radius ** <span class="num">2</span>
+<span class="fn">print</span>(<span class="str">f"Circle area = {area:.2f}"</span>)</div>
+      <div class="output-label">▶ Output</div>
+      <div class="output-box">Hello Theo, you are 11 years old
+Pi is roughly 3.14159
+Circle area = 78.54</div>
+    </div>
+
+    <div class="card card-accent-yellow">
+      <span class="concept-pill pill-yellow">Try it — circle calculator</span>
+      <p class="explainer">Drag the slider to change the radius. Watch Python recalculate the area and circumference instantly!</p>
+      <div class="slider-section">
+        <div class="slider-row">
+          <label>Radius (r)</label>
+          <input type="range" min="1" max="20" value="5" step="1" id="r-slider" oninput="updateCircle(this.value)">
+          <span class="slider-val" id="r-val">5</span>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-formula">area = π × r²</div>
+          <div class="stat-val" id="area-out">78.54</div>
+          <div class="stat-unit">square units</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-formula">circumference = 2πr</div>
+          <div class="stat-val" id="circ-out">31.42</div>
+          <div class="stat-unit">units</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOOPS -->
+  <div id="loops" class="section">
+    <div class="card card-accent-teal">
+      <span class="concept-pill pill-teal">For loops</span>
+      <p class="explainer">A <strong>for loop</strong> repeats code a set number of times. <code>range(1, 13)</code> gives the numbers 1 to 12 — perfect for times tables!</p>
+      <div class="code-block"><span class="comment"># Print the 7 times table</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">13</span>):
+    result = <span class="num">7</span> * i
+    <span class="fn">print</span>(<span class="str">f"7 × {i} = {result}"</span>)</div>
+      <div class="output-label">▶ Output (first 4 lines)</div>
+      <div class="output-box">7 × 1 = 7
+7 × 2 = 14
+7 × 3 = 21
+7 × 4 = 28  ...</div>
+    </div>
+
+    <div class="card card-accent-yellow">
+      <span class="concept-pill pill-yellow">Try it — times table generator</span>
+      <p class="explainer">Pick any number and see its full times table.</p>
+      <div class="slider-section">
+        <div class="slider-row">
+          <label>Number</label>
+          <input type="range" min="2" max="12" value="7" step="1" id="tt-slider" oninput="updateTable(this.value)">
+          <span class="slider-val" id="tt-val">7</span>
+        </div>
+      </div>
+      <div class="tt-grid" id="tt-grid"></div>
+    </div>
+
+    <div class="card card-accent-purple">
+      <span class="concept-pill pill-purple">While loops</span>
+      <p class="explainer">A <strong>while loop</strong> keeps going as long as a condition is true — useful when you don't know how many steps you need in advance.</p>
+      <div class="code-block"><span class="comment"># Find the first power of 2 bigger than 1000</span>
+<span class="var">n</span> = <span class="num">1</span>
+<span class="kw">while</span> n &lt;= <span class="num">1000</span>:
+    n = n * <span class="num">2</span>
+<span class="fn">print</span>(<span class="str">f"First power of 2 above 1000 is {n}"</span>)</div>
+      <div class="output-label">▶ Output</div>
+      <div class="output-box">First power of 2 above 1000 is 1024</div>
+    </div>
+  </div>
+
+  <!-- FUNCTIONS -->
+  <div id="functions" class="section">
+    <div class="card card-accent-pink">
+      <span class="concept-pill pill-pink">Functions</span>
+      <p class="explainer">A <strong>function</strong> is a named recipe — define it once with <code>def</code>, then call it whenever you need it. You pass in inputs (called <em>parameters</em>) and get back a result.</p>
+      <div class="code-block"><span class="kw">def</span> <span class="fn">is_prime</span>(n):
+    <span class="comment"># Returns True if n is a prime number</span>
+    <span class="kw">if</span> n &lt; <span class="num">2</span>:
+        <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>, n):
+        <span class="kw">if</span> n % i == <span class="num">0</span>:
+            <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">return</span> <span class="kw">True</span>
+
+<span class="comment"># Find all primes up to 30</span>
+<span class="var">primes</span> = []
+<span class="kw">for</span> n <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>, <span class="num">31</span>):
+    <span class="kw">if</span> <span class="fn">is_prime</span>(n):
+        primes.<span class="fn">append</span>(n)
+<span class="fn">print</span>(primes)</div>
+      <div class="output-label">▶ Output</div>
+      <div class="output-box">[2, 3, 5, 7, 11, 13, 17, 19, 23, 29]</div>
+    </div>
+
+    <div class="card card-accent-teal">
+      <span class="concept-pill pill-teal">Try it — prime number checker</span>
+      <p class="explainer">Drag to pick a number and see if it's prime.</p>
+      <div class="slider-section">
+        <div class="slider-row">
+          <label>Number</label>
+          <input type="range" min="2" max="100" value="17" step="1" id="prime-slider" oninput="updatePrime(this.value)">
+          <span class="slider-val" id="prime-val">17</span>
+        </div>
+      </div>
+      <div id="prime-out" class="prime-result prime-yes">17 is a prime number ✓</div>
+    </div>
+  </div>
+
+  <!-- JUPYTER -->
+  <div id="notebook" class="section">
+    <div class="card card-accent-purple">
+      <span class="concept-pill pill-purple">What is a Jupyter notebook?</span>
+      <p class="explainer">A Jupyter notebook is a document made of <strong>cells</strong>. Each cell holds Python code or notes. You run one cell at a time and see the output right underneath — perfect for exploring maths step by step. Real scientists and data analysts use them every day!</p>
+      <div class="notebook">
+        <div class="nb-toolbar">
+          <span class="nb-dot" style="background:#ff5f57"></span>
+          <span class="nb-dot" style="background:#febc2e"></span>
+          <span class="nb-dot" style="background:#28c840"></span>
+          <span style="margin-left:8px">📓 my_maths.ipynb</span>
+        </div>
+        <div class="nb-cell">
+          <div class="nb-in">In [1]:</div>
+          <div class="code-block" style="margin:0;border:none;padding:0.5rem 0"><span class="comment"># Cell 1 — define a function</span>
+<span class="kw">def</span> <span class="fn">square</span>(x):
+    <span class="kw">return</span> x ** <span class="num">2</span></div>
+          <div class="nb-out">Out [1]: (no output — just defined the function)</div>
+        </div>
+        <div class="nb-cell">
+          <div class="nb-in">In [2]:</div>
+          <div class="code-block" style="margin:0;border:none;padding:0.5rem 0"><span class="comment"># Cell 2 — use the function</span>
+<span class="fn">print</span>([<span class="fn">square</span>(n) <span class="kw">for</span> n <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">11</span>)])</div>
+          <div class="nb-out">Out [2]: [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]</div>
+        </div>
+        <div class="nb-cell">
+          <div class="nb-in">In [3]:</div>
+          <div class="code-block" style="margin:0;border:none;padding:0.5rem 0"><span class="comment"># Cell 3 — plot a curve with matplotlib</span>
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+xs = <span class="fn">list</span>(<span class="fn">range</span>(<span class="num">1</span>, <span class="num">11</span>))
+ys = [<span class="fn">square</span>(x) <span class="kw">for</span> x <span class="kw">in</span> xs]
+plt.<span class="fn">plot</span>(xs, ys, marker=<span class="str">'o'</span>, color=<span class="str">'purple'</span>)
+plt.<span class="fn">title</span>(<span class="str">"y = x²"</span>)
+plt.<span class="fn">show</span>()</div>
+          <div class="nb-out">Out [3]: 📈 a beautiful curve appears below the cell!</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-accent-teal">
+      <span class="concept-pill pill-teal">How to get started</span>
+
+      <a href="my_maths.ipynb" download class="nb-download-btn">
+        &#11015; Download my_maths.ipynb
+      </a>
+      <p style="font-size:13px;color:var(--muted);margin: 8px 0 1rem;">Save this file, then follow the steps below to open it in Jupyter.</p>
+
+      <div class="step-list">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Open it online — free, no sign-up</strong>
+            <span>Go to <a href="https://jupyter.org/try" target="_blank">jupyter.org/try</a>, click "JupyterLab", then upload the downloaded .ipynb file using the upload button (&#11014;) in the left sidebar.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Install Anaconda on your computer</strong>
+            <span>Download from <a href="https://www.anaconda.com" target="_blank">anaconda.com</a> — it installs Python, Jupyter, and all the maths libraries (numpy, matplotlib) in one go.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Later: use VS Code</strong>
+            <span>VS Code is a brilliant free code editor that also runs Jupyter notebooks — great once you're comfortable with the basics.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHALLENGES -->
+  <div id="challenge" class="section">
+
+    <div id="pyodide-loading-banner" class="pyodide-loading">
+      <div class="spinner"></div>
+      <p>Loading Python engine — just a moment...</p>
+    </div>
+
+    <div class="card card-accent-yellow">
+      <div class="challenge-header">
+        <div class="challenge-num">1</div>
+        <span class="concept-pill pill-yellow" style="margin:0">Times table</span>
+      </div>
+      <p class="explainer">Write a loop that prints the <strong>9 times table</strong> from 9&times;1 to 9&times;12. Each line should look like: <code>9 x 1 = 9</code></p>
+      <div class="py-editor-wrap">
+        <textarea class="py-editor" id="code1" spellcheck="false">for i in range(1, 13):
+    print(f"Change this to print the 9 times table!")</textarea>
+        <div class="py-toolbar">
+          <button class="run-btn" onclick="runCode('code1','out1')">&#9654; Run</button>
+          <button class="reset-btn" onclick="resetCode('code1', 1)">&#10227; Reset</button>
+          <span class="py-status" id="status1"></span>
+        </div>
+      </div>
+      <div class="py-output" id="out1"></div>
+      <button class="hint-btn" onclick="toggleHint('hint1')" style="margin-top:10px">&#128161; Hint</button>
+      <div id="hint1" class="hint-box">Use <code>for i in range(1, 13):</code> and inside the loop write <code>print(f"9 x {i} = {9 * i}")</code></div>
+    </div>
+
+    <div class="card card-accent-teal">
+      <div class="challenge-header">
+        <div class="challenge-num">2</div>
+        <span class="concept-pill pill-teal" style="margin:0">Sum of squares</span>
+      </div>
+      <p class="explainer">Write a function called <code>sum_of_squares(n)</code> that returns 1&sup2; + 2&sup2; + ... + n&sup2;. Call it with <strong>n = 10</strong> — the answer should be <strong>385</strong>.</p>
+      <div class="py-editor-wrap">
+        <textarea class="py-editor" id="code2" spellcheck="false">def sum_of_squares(n):
+    total = 0
+    # your loop goes here
+    return total
+
+print(sum_of_squares(10))  # should print 385</textarea>
+        <div class="py-toolbar">
+          <button class="run-btn" onclick="runCode('code2','out2')">&#9654; Run</button>
+          <button class="reset-btn" onclick="resetCode('code2', 2)">&#10227; Reset</button>
+          <span class="py-status" id="status2"></span>
+        </div>
+      </div>
+      <div class="py-output" id="out2"></div>
+      <button class="hint-btn" onclick="toggleHint('hint2')" style="margin-top:10px">&#128161; Hint</button>
+      <div id="hint2" class="hint-box">Inside the function add: <code>for i in range(1, n+1):</code> then <code>total = total + i ** 2</code></div>
+    </div>
+
+    <div class="card card-accent-pink">
+      <div class="challenge-header">
+        <div class="challenge-num">3</div>
+        <span class="concept-pill pill-pink" style="margin:0">Fibonacci</span>
+      </div>
+      <p class="explainer">The Fibonacci sequence: <strong>1, 1, 2, 3, 5, 8, 13 ...</strong> — each number is the sum of the two before it. Print the first <strong>10</strong> Fibonacci numbers.</p>
+      <div class="py-editor-wrap">
+        <textarea class="py-editor" id="code3" spellcheck="false">a, b = 1, 1
+# add a for loop here that runs 10 times
+# each time: print a, then update a and b
+</textarea>
+        <div class="py-toolbar">
+          <button class="run-btn" onclick="runCode('code3','out3')">&#9654; Run</button>
+          <button class="reset-btn" onclick="resetCode('code3', 3)">&#10227; Reset</button>
+          <span class="py-status" id="status3"></span>
+        </div>
+      </div>
+      <div class="py-output" id="out3"></div>
+      <button class="hint-btn" onclick="toggleHint('hint3')" style="margin-top:10px">&#128161; Hint</button>
+      <div id="hint3" class="hint-box">Add: <code>for i in range(10):</code> then inside: <code>print(a)</code> and <code>a, b = b, a + b</code></div>
+    </div>
+
+    <div class="card card-accent-teal">
+      <div class="challenge-header">
+        <div class="challenge-num" style="background:var(--accent3);color:var(--bg)">4</div>
+        <span class="concept-pill pill-teal" style="margin:0">Fibonacci spiral</span>
+      </div>
+      <p class="explainer">Time to draw something beautiful! This code uses <strong>matplotlib</strong> to draw a Fibonacci spiral — one of the most famous patterns in maths and nature. Press ▶ Run and see what appears. Then try changing the colours!</p>
+      <div class="py-editor-wrap">
+        <textarea class="py-editor" id="code4" spellcheck="false" style="min-height:260px">import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import math
+
+# Generate Fibonacci numbers
+fibs = []
+a, b = 1, 1
+for _ in range(9):
+    fibs.append(a)
+    a, b = b, a + b
+
+# 🎨 Try changing these colours!
+colours = ['#7c6ff7','#f7c948','#4ecdc4','#ff6b9d','#69db7c',
+           '#82aaff','#c792ea','#f07178','#4ecdc4']
+
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.set_aspect('equal')
+ax.axis('off')
+fig.patch.set_facecolor('#0f0e17')
+ax.set_facecolor('#0f0e17')
+
+# Build the tiling
+x, y = 0, 0
+squares = []
+for i, f in enumerate(fibs):
+    squares.append((x, y, f, i % 4))
+    direction = i % 4
+    next_f = fibs[i+1] if i+1 < len(fibs) else 0
+    if direction == 0:
+        x = x + f - next_f; y = y + f
+    elif direction == 1:
+        x = x - next_f; y = y + f - next_f
+    elif direction == 2:
+        y = y - next_f
+    else:
+        x = x + f
+
+# Draw squares
+for i, (sx, sy, f, d) in enumerate(squares):
+    rect = patches.Rectangle((sx, sy), f, f,
+                               linewidth=1, edgecolor='white',
+                               facecolor=colours[i % len(colours)], alpha=0.85)
+    ax.add_patch(rect)
+
+# Draw spiral arc
+for i, (sx, sy, f, d) in enumerate(squares):
+    if d == 0:   cx, cy, t1, t2 = sx,   sy,   0,   90
+    elif d == 1: cx, cy, t1, t2 = sx+f, sy,   90,  180
+    elif d == 2: cx, cy, t1, t2 = sx+f, sy+f, 180, 270
+    else:        cx, cy, t1, t2 = sx,   sy+f, 270, 360
+    theta = [math.radians(t) for t in range(t1, t2+1)]
+    ax.plot([cx + f*math.cos(t) for t in theta],
+            [cy + f*math.sin(t) for t in theta],
+            color='white', linewidth=2, zorder=10)
+
+ax.autoscale()
+plt.title('Fibonacci Spiral', color='white', fontsize=14, pad=12)
+plt.tight_layout()
+plt.savefig('spiral.png', dpi=100, bbox_inches='tight', facecolor='#0f0e17')
+plt.close()
+print('Done! Scroll down to see the spiral.')</textarea>
+        <div class="py-toolbar">
+          <button class="run-btn" onclick="runCodePlot('code4','out4','plot4')">&#9654; Run</button>
+          <button class="reset-btn" onclick="resetCode('code4', 4)">&#10227; Reset</button>
+          <span class="py-status" id="status4"></span>
+        </div>
+      </div>
+      <div class="py-output" id="out4"></div>
+      <div id="plot4" style="display:none;margin-top:12px;text-align:center">
+        <img id="plot4-img" style="max-width:100%;border-radius:12px;border:1px solid var(--border)" alt="Fibonacci spiral plot">
+      </div>
+    </div>
+
+    <div class="card card-accent-purple">
+      <div class="challenge-header">
+        <div class="challenge-num" style="background:var(--accent);color:white">5</div>
+        <span class="concept-pill pill-purple" style="margin:0">Free code cell</span>
+      </div>
+      <p class="explainer">This cell is <strong>all yours</strong> — try whatever you like! Write a loop, invent a function, test a maths idea. There are no rules here.</p>
+      <div class="py-editor-wrap">
+        <textarea class="py-editor" id="code5" spellcheck="false"># Free code cell — try anything you like!
+# Some ideas:
+#   print("Hello, world!")
+#   for i in range(10): print(i * i)
+#   import math; print(math.sqrt(144))
+
+print("What will you make?")</textarea>
+        <div class="py-toolbar">
+          <button class="run-btn" onclick="runCode('code5','out5')">&#9654; Run</button>
+          <button class="reset-btn" onclick="resetCode('code5', 5)">&#10227; Reset</button>
+          <span class="py-status" id="status5"></span>
+        </div>
+      </div>
+      <div class="py-output" id="out5"></div>
+    </div>
+
+  </div>
+
+    <footer>
+    <p>Made with ❤️ by Granddad David &nbsp;·&nbsp; Start coding at <span>jupyter.org/try</span></p>
+  </footer>
+
+</div>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function updateCircle(r) {
+  document.getElementById('r-val').textContent = r;
+  document.getElementById('area-out').textContent = (Math.PI * r * r).toFixed(2);
+  document.getElementById('circ-out').textContent = (2 * Math.PI * r).toFixed(2);
+}
+
+function updateTable(n) {
+  n = parseInt(n);
+  document.getElementById('tt-val').textContent = n;
+  const grid = document.getElementById('tt-grid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= 12; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'tt-cell';
+    cell.innerHTML = n + ' × ' + i + ' = <span class="result">' + (n * i) + '</span>';
+    grid.appendChild(cell);
+  }
+}
+
+function isPrime(n) {
+  if (n < 2) return false;
+  for (let i = 2; i < n; i++) if (n % i === 0) return false;
+  return true;
+}
+
+function updatePrime(n) {
+  n = parseInt(n);
+  document.getElementById('prime-val').textContent = n;
+  const el = document.getElementById('prime-out');
+  if (isPrime(n)) {
+    el.className = 'prime-result prime-yes';
+    el.textContent = n + ' is a prime number ✓';
+  } else {
+    el.className = 'prime-result prime-no';
+    // Find a factor
+    let factor = '';
+    for (let i = 2; i < n; i++) { if (n % i === 0) { factor = ' (' + i + ' × ' + (n/i) + ')'; break; } }
+    el.textContent = n + ' is not prime' + factor + ' ✗';
+  }
+}
+
+function toggleHint(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+function runChallenge(codeId, outId) {
+  const code = document.getElementById(codeId).value;
+  const outEl = document.getElementById(outId);
+  const output = [];
+  try {
+    let evCode = code;
+    evCode = evCode.replace(/print\(([^)]+)\)/g, (m, inner) => `__out.push(String(${inner}))`);
+    const fn = new Function('__out', evCode);
+    fn(output);
+    if (output.length === 0) output.push('(no output)');
+    outEl.innerHTML = '<div class="output-label">▶ Output</div><div class="output-box">' + output.join('\n') + '</div>';
+  } catch(e) {
+    outEl.innerHTML = '<div class="error-box">Oops! ' + e.message + '</div>';
+  }
+}
+
+// Initialise
+updateTable(7);
+updatePrime(17);
+
+// Tab: enable editors only after Pyodide ready
+const starterCode = {
+  1: `for i in range(1, 13):\n    print(f"Change this to print the 9 times table!")`,
+  2: `def sum_of_squares(n):\n    total = 0\n    # your loop goes here\n    return total\n\nprint(sum_of_squares(10))  # should print 385`,
+  3: `a, b = 1, 1\n# add a for loop here that runs 10 times\n# each time: print a, then update a and b\n`,
+  4: `import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import math
+
+# Generate Fibonacci numbers
+fibs = []
+a, b = 1, 1
+for _ in range(9):
+    fibs.append(a)
+    a, b = b, a + b
+
+# 🎨 Try changing these colours!
+colours = ['#7c6ff7','#f7c948','#4ecdc4','#ff6b9d','#69db7c',
+           '#82aaff','#c792ea','#f07178','#4ecdc4']
+
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.set_aspect('equal')
+ax.axis('off')
+fig.patch.set_facecolor('#0f0e17')
+ax.set_facecolor('#0f0e17')
+
+# Build the tiling
+x, y = 0, 0
+squares = []
+for i, f in enumerate(fibs):
+    squares.append((x, y, f, i % 4))
+    direction = i % 4
+    next_f = fibs[i+1] if i+1 < len(fibs) else 0
+    if direction == 0:
+        x = x + f - next_f; y = y + f
+    elif direction == 1:
+        x = x - next_f; y = y + f - next_f
+    elif direction == 2:
+        y = y - next_f
+    else:
+        x = x + f
+
+# Draw squares
+for i, (sx, sy, f, d) in enumerate(squares):
+    rect = patches.Rectangle((sx, sy), f, f,
+                               linewidth=1, edgecolor='white',
+                               facecolor=colours[i % len(colours)], alpha=0.85)
+    ax.add_patch(rect)
+
+# Draw spiral arc
+for i, (sx, sy, f, d) in enumerate(squares):
+    if d == 0:   cx, cy, t1, t2 = sx,   sy,   0,   90
+    elif d == 1: cx, cy, t1, t2 = sx+f, sy,   90,  180
+    elif d == 2: cx, cy, t1, t2 = sx+f, sy+f, 180, 270
+    else:        cx, cy, t1, t2 = sx,   sy+f, 270, 360
+    theta = [math.radians(t) for t in range(t1, t2+1)]
+    ax.plot([cx + f*math.cos(t) for t in theta],
+            [cy + f*math.sin(t) for t in theta],
+            color='white', linewidth=2, zorder=10)
+
+ax.autoscale()
+plt.title('Fibonacci Spiral', color='white', fontsize=14, pad=12)
+plt.tight_layout()
+plt.savefig('spiral.png', dpi=100, bbox_inches='tight', facecolor='#0f0e17')
+plt.close()
+print('Done! Scroll down to see the spiral.')`,
+  5: `# Free code cell — try anything you like!\n# Some ideas:\n#   print("Hello, world!")\n#   for i in range(10): print(i * i)\n#   import math; print(math.sqrt(144))\n\nprint("What will you make?")`
+};
+
+function resetCode(editorId, num) {
+  document.getElementById(editorId).value = starterCode[num];
+  const out = document.getElementById('out' + num);
+  out.classList.remove('visible','has-error');
+  out.textContent = '';
+}
+
+// Tab indent in textareas
+document.querySelectorAll('.py-editor').forEach(ta => {
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const s = ta.selectionStart, end = ta.selectionEnd;
+      ta.value = ta.value.substring(0, s) + '    ' + ta.value.substring(end);
+      ta.selectionStart = ta.selectionEnd = s + 4;
+    }
+  });
+});
+
+// Pyodide
+let pyodide = null;
+
+async function loadPyodideEngine() {
+  const banner = document.getElementById('pyodide-loading-banner');
+  try {
+    // Use the official Pyodide CDN — most reliable option
+    importScripts; // just a check we are not in a worker
+  } catch(e) {}
+  try {
+    pyodide = await loadPyodide();
+    banner.style.display = 'none';
+  } catch(e) {
+    banner.innerHTML = '<p style="color:var(--accent4)">Could not load Python engine: ' + e.message + '. Try reloading the page.</p>';
+  }
+}
+
+async function runCode(editorId, outId) {
+  const code = document.getElementById(editorId).value;
+  const outEl = document.getElementById(outId);
+  const num = editorId.replace('code','');
+  const statusEl = document.getElementById('status' + num);
+  const btn = outEl.previousElementSibling.querySelector('.run-btn');
+
+  if (!pyodide) {
+    outEl.textContent = 'Python is still loading — please wait a moment and try again.';
+    outEl.className = 'py-output has-error visible';
+    return;
+  }
+
+  btn.disabled = true;
+  statusEl.textContent = 'running...';
+  outEl.classList.remove('has-error');
+
+  try {
+    // Wrap user code to capture stdout inside Python
+    const wrapped = `
+import sys, io as _io
+_buf = _io.StringIO()
+_old_stdout = sys.stdout
+_old_stderr = sys.stderr
+sys.stdout = _buf
+sys.stderr = _buf
+try:
+${code.split('\n').map(l => '    ' + l).join('\n')}
+except Exception as _e:
+    print(type(_e).__name__ + ': ' + str(_e))
+finally:
+    sys.stdout = _old_stdout
+    sys.stderr = _old_stderr
+_buf.getvalue()
+`;
+    const result = await pyodide.runPythonAsync(wrapped);
+    outEl.textContent = (result || '').trimEnd() || '(no output)';
+    outEl.className = 'py-output visible';
+    statusEl.textContent = '✓ done';
+  } catch(err) {
+    let msg = err.message || String(err);
+    // Extract just the readable Python error line
+    const lines = msg.split('\n').filter(l => l.trim());
+    msg = lines[lines.length - 1] || msg;
+    outEl.textContent = msg;
+    outEl.className = 'py-output has-error visible';
+    statusEl.textContent = '✗ error';
+  }
+  btn.disabled = false;
+}
+
+window.addEventListener("load", loadPyodideEngine);
+
+async function runCodePlot(editorId, outId, plotDivId) {
+  const code = document.getElementById(editorId).value;
+  const outEl = document.getElementById(outId);
+  const plotDiv = document.getElementById(plotDivId);
+  const plotImg = document.getElementById(plotDivId + '-img');
+  const num = editorId.replace('code','');
+  const statusEl = document.getElementById('status' + num);
+  const btn = outEl.previousElementSibling.querySelector('.run-btn');
+
+  if (!pyodide) {
+    outEl.textContent = 'Python is still loading — please wait a moment and try again.';
+    outEl.className = 'py-output has-error visible';
+    return;
+  }
+
+  btn.disabled = true;
+  statusEl.textContent = 'running...';
+  outEl.classList.remove('has-error');
+  plotDiv.style.display = 'none';
+
+  try {
+    // Load matplotlib if needed
+    await pyodide.loadPackagesFromImports(code);
+
+    const wrapped = `
+import sys, io as _io
+_buf = _io.StringIO()
+_old_stdout = sys.stdout
+_old_stderr = sys.stderr
+sys.stdout = _buf
+sys.stderr = _buf
+try:
+${code.split('\n').map(l => '    ' + l).join('\n')}
+except Exception as _e:
+    print(type(_e).__name__ + ': ' + str(_e))
+finally:
+    sys.stdout = _old_stdout
+    sys.stderr = _old_stderr
+_buf.getvalue()
+`;
+    const result = await pyodide.runPythonAsync(wrapped);
+    outEl.textContent = (result || '').trimEnd() || '(no output)';
+    outEl.className = 'py-output visible';
+    statusEl.textContent = '✓ done';
+
+    // Read the saved PNG and display it
+    try {
+      const imgData = pyodide.FS.readFile('spiral.png');
+      const blob = new Blob([imgData], { type: 'image/png' });
+      const url = URL.createObjectURL(blob);
+      plotImg.src = url;
+      plotDiv.style.display = 'block';
+    } catch(imgErr) {
+      // No image file — that's fine
+    }
+  } catch(err) {
+    let msg = err.message || String(err);
+    const lines = msg.split('\n').filter(l => l.trim());
+    msg = lines[lines.length - 1] || msg;
+    outEl.textContent = msg;
+    outEl.className = 'py-output has-error visible';
+    statusEl.textContent = '✗ error';
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
